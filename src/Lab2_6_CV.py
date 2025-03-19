@@ -1,3 +1,14 @@
+def accuracy(model, X, y): 
+    num_aciertos = 0 
+    for i in range(len(X)): 
+        y_pred = model.predict([X[i]])[0]
+        if y_pred == y[i]: 
+            num_aciertos+=1 
+    return num_aciertos/ len(X)
+
+
+
+
 def cross_validation(model, X, y, nFolds):
     """
     Perform cross-validation on a given machine learning model to evaluate its performance.
@@ -45,25 +56,43 @@ def cross_validation(model, X, y, nFolds):
         nFolds = X.shape[0]
 
     # TODO: Calculate fold_size based on the number of folds
-    fold_size = None
-
+    fold_size = len(X) //nFolds
+    
     # TODO: Initialize a list to store the accuracy values of the model for each fold
     accuracy_scores = []
 
-    for i in range(nFolds):
+
+    for i in range(nFolds): # recorremos cada bloque 
         # TODO: Generate indices of samples for the validation set for the fold
-        valid_indices = None
+        start = i * fold_size
+
+        if i < nFolds - 1: 
+            end = start + fold_size 
+        else: 
+            end = len(X)  # último fold puede ser más largo
+
+        valid_indices = [vi for vi in range(start, end)]
 
         # TODO: Generate indices of samples for the training set for the fold
-        train_indices = None
+        train_indices = [ti for ti in range(0,start)] + [ti for ti in range(end, len(X))] 
 
         # TODO: Split the dataset into training and validation
-        X_train, X_valid = None, None
-        y_train, y_valid = None, None
+        X_train, X_valid = [X[j] for j in train_indices], [X[j] for j in valid_indices] 
+        y_train, y_valid = [y[j] for j in train_indices], [y[j] for j in valid_indices]
 
         # TODO: Train the model with the training set
+        model.fit(X_train, y_train)
 
         # TODO: Calculate the accuracy of the model with the validation set and store it in accuracy_scores
-
+        accuracy_scores.append(accuracy(model, X_valid, y_valid))
     # TODO: Return the mean and standard deviation of the accuracy_scores
-    return None, None
+
+    media = sum(accuracy_scores)/ len(accuracy_scores)
+    suma_diferencias = 0 
+    for i in accuracy_scores: 
+        suma_diferencias+= (i - media)**2 
+    
+    std = (suma_diferencias / len(accuracy_scores)) ** 0.5 
+
+
+    return media, std
